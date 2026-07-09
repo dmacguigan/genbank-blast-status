@@ -1,11 +1,11 @@
 {
   "status": "OPERATIONAL",
-  "checked_utc": "2026-07-09T19:52:49Z",
+  "checked_utc": "2026-07-09T19:58:30Z",
   "blast_ok": true,
-  "blast_latency_s": 29.9,
+  "blast_latency_s": 42.2,
   "hit_count": 5,
   "eutils_ok": true,
   "neutral_ok": true,
   "query_source": "efetch",
-  "message": "Remote BLAST returned results normally in 30s."
+  "message": "Remote BLAST returned results normally in 42s."
 }
