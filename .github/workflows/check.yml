@@ -1,0 +1,39 @@
+name: BLAST status check
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"   # every 30 minutes (UTC)
+  workflow_dispatch: {}        # allow manual runs for testing
+
+permissions:
+  contents: write
+
+concurrency:
+  group: blast-check
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install BLAST+
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ncbi-blast+
+
+      - name: Run BLAST probe
+        run: python3 scripts/check_blast.py
+
+      - name: Commit status
+        run: |
+          git config user.name  "blast-status-bot"
+          git config user.email "actions@github.com"
+          git add docs/status.json docs/history.json
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git commit -m "status: $(python3 -c 'import json;print(json.load(open("docs/status.json"))["status"])') [skip ci]"
+          git pull --rebase --autostash origin "${GITHUB_REF_NAME}" || true
+          git push

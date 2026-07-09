@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GenBank Remote BLAST Status</title>
+  <meta name="description" content="Unofficial downdetector-style status monitor for NCBI GenBank's remote BLAST (blastn -remote).">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <h1>GenBank Remote BLAST Status</h1>
+      <p class="sub">Unofficial monitor of NCBI <code>blastn&nbsp;-remote</code> (database <code>nt</code>).</p>
+    </header>
+
+    <section id="banner" class="banner loading">
+      <div class="dot"></div>
+      <div class="banner-text">
+        <div class="banner-status">Loading&hellip;</div>
+        <div class="banner-msg" id="message">Fetching latest check&hellip;</div>
+      </div>
+    </section>
+
+    <section class="stats">
+      <div class="stat"><div class="stat-val" id="checked">&mdash;</div><div class="stat-lbl">Last checked</div></div>
+      <div class="stat"><div class="stat-val" id="latency">&mdash;</div><div class="stat-lbl">BLAST latency</div></div>
+      <div class="stat"><div class="stat-val" id="uptime">&mdash;</div><div class="stat-lbl">24h availability</div></div>
+      <div class="stat"><div class="stat-val" id="avglat">&mdash;</div><div class="stat-lbl">24h avg latency</div></div>
+    </section>
+
+    <section class="timeline-wrap">
+      <h2>Recent checks</h2>
+      <div class="timeline" id="timeline" aria-label="History of recent checks"></div>
+      <div class="axis"><span id="axis-start">&mdash;</span><span>now</span></div>
+    </section>
+
+    <section class="legend" id="legend"></section>
+
+    <footer>
+      <p>Checked every ~30&nbsp;min by a GitHub Actions job running a real remote
+        BLAST query. This site is <strong>not affiliated with NCBI</strong>.
+        For official service notices see the
+        <a href="https://blast.ncbi.nlm.nih.gov/Blast.cgi">NCBI BLAST site</a>.</p>
+      <p class="ts">Page loaded <span id="loaded"></span>. Auto-refreshes every 5&nbsp;min.</p>
+    </footer>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
