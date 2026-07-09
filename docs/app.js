@@ -40,6 +40,15 @@ function renderBanner(s) {
   document.getElementById("checked").textContent = relTime(s.checked_utc);
   document.getElementById("latency").textContent =
     s.blast_ok ? fmtLatency(s.blast_latency_s) : "—";
+  const submitEl = document.getElementById("submit");
+  if (s.submit_total) {
+    submitEl.textContent = `${s.submit_ok}/${s.submit_total}`;
+    submitEl.title = s.submit_failed
+      ? `${s.submit_failed} rejected — ${s.submit_sample_error || ""}`
+      : "all test submissions queued";
+  } else {
+    submitEl.textContent = "—";
+  }
 }
 
 function renderStats(history) {
@@ -67,8 +76,10 @@ function renderTimeline(history) {
     const bar = document.createElement("div");
     const meta = STATES[h.s] || STATES.INCONCLUSIVE;
     bar.className = `bar ${meta.cls}`;
-    bar.title = `${new Date(h.t).toLocaleString()}\n${meta.label}` +
-      (h.ok ? ` · ${fmtLatency(h.l)}` : "");
+    let tip = `${new Date(h.t).toLocaleString()}\n${meta.label}`;
+    if (h.st) tip += `\nsubmit ${h.st - (h.sf || 0)}/${h.st} queued`;
+    if (h.ok) tip += `\nretrieval ${fmtLatency(h.l)}`;
+    bar.title = tip;
     el.appendChild(bar);
   }
   if (recent.length) {

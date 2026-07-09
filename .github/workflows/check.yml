@@ -34,6 +34,7 @@ jobs:
             echo "No changes to commit."
             exit 0
           fi
-          git commit -m "status: $(python3 -c 'import json;print(json.load(open("docs/status.json"))["status"])') [skip ci]"
+          git commit -m "status: $(python3 -c 'import json;print(json.load(open("docs/status.json"))["status"])') [skip ci]" \
+            -m "Co-Authored-By: Claude <noreply@anthropic.com>"
           git pull --rebase --autostash origin "${GITHUB_REF_NAME}" || true
           git push
