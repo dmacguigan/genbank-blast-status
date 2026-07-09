@@ -1,11 +1,11 @@
 {
-  "status": "INCONCLUSIVE",
-  "checked_utc": "1970-01-01T00:00:00Z",
-  "blast_ok": false,
-  "blast_latency_s": 0,
-  "hit_count": 0,
-  "eutils_ok": false,
-  "neutral_ok": false,
-  "query_source": "none",
-  "message": "No check has run yet. Waiting for the first scheduled BLAST probe."
+  "status": "OPERATIONAL",
+  "checked_utc": "2026-07-09T19:52:49Z",
+  "blast_ok": true,
+  "blast_latency_s": 29.9,
+  "hit_count": 5,
+  "eutils_ok": true,
+  "neutral_ok": true,
+  "query_source": "efetch",
+  "message": "Remote BLAST returned results normally in 30s."
 }
