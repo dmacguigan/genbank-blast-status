@@ -1,15 +1,15 @@
 {
-  "status": "DEGRADED",
-  "checked_utc": "2026-07-12T11:00:36Z",
+  "status": "OPERATIONAL",
+  "checked_utc": "2026-07-12T12:04:12Z",
   "submit_total": 3,
   "submit_ok": 3,
   "submit_failed": 0,
   "submit_sample_error": "",
-  "blast_ok": false,
-  "blast_latency_s": 300.1,
-  "hit_count": 0,
+  "blast_ok": true,
+  "blast_latency_s": 47.3,
+  "hit_count": 5,
   "eutils_ok": true,
   "neutral_ok": true,
   "query_source": "efetch",
-  "message": "Jobs submit fine but results did not come back (timeout after 300s); the rest of NCBI is reachable, so this looks BLAST-specific."
+  "message": "Submissions queue (3/3) and results return normally in 47s."
 }
