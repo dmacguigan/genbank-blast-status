@@ -1,7 +1,7 @@
 # GenBank Remote BLAST Status
 
 A tiny, free-to-host "downdetector" for NCBI GenBank's **remote BLAST**
-(`blastn -remote` against the `nt` database).
+(`blastn -remote` against the `nt` database). See the website [here](https://dmacguigan.github.io/genbank-blast-status/).
 
 A GitHub Actions cron job runs a real remote BLAST query every ~30 minutes,
 records whether it worked and how long it took, and commits the result. A
