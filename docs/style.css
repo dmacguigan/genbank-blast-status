@@ -67,12 +67,13 @@ code { background: rgba(127,127,127,.15); padding: .1em .35em; border-radius: 4p
   border-radius: 10px; padding: .8rem; box-shadow: var(--shadow);
   min-height: 60px; overflow-x: auto;
 }
-.bar { flex: 1 1 4px; min-width: 4px; height: 40px; border-radius: 2px; background: var(--grey); opacity: .9; }
+.bar { flex: 1 1 3px; min-width: 3px; height: 40px; border-radius: 2px; background: var(--grey); opacity: .9; }
 .bar.operational { background: var(--green); }
 .bar.slow { background: var(--yellow); }
 .bar.degraded { background: var(--orange); }
 .bar.outage { background: var(--red); }
 .bar.inconclusive { background: var(--grey); opacity: .45; }
+.bar.nodata { background: transparent; border: 1px dashed var(--border); opacity: .4; height: 12px; align-self: center; }
 .axis { display: flex; justify-content: space-between; color: var(--muted); font-size: .75rem; margin-top: .3rem; }
 
 .legend { display: flex; flex-wrap: wrap; gap: .75rem 1.25rem; }

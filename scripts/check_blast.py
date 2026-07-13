@@ -37,8 +37,12 @@ STATUS_FILE = DOCS / "status.json"
 HISTORY_FILE = DOCS / "history.json"
 FALLBACK_QUERY = ROOT / "scripts" / "query.fasta"
 
-# Pinned RefSeq used as the query; fetched fresh so retrieval yields hits.
-QUERY_ACC = "NM_002046"  # human GAPDH mRNA, one of the most-sequenced genes
+# Pinned query; fetched fresh so retrieval yields hits. It must live inside the
+# ENTREZ_QUERY subset below or retrieval returns zero hits. This is a slice of
+# the human mitochondrial genome (COI gene), which is mitochondrion[Location].
+QUERY_ACC = "NC_012920.1"  # human mitochondrion, complete genome
+QUERY_START = 5904         # COI region, keeps the query short and fast
+QUERY_STOP = 7445
 DB = "core_nt"           # NCBI's current large nucleotide db (what users hit)
 ENTREZ_QUERY = "mitochondrion[Location]"  # mirrors the reported failing command
 
@@ -47,14 +51,15 @@ EUTILS_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/einfo.fcgi"
 EFETCH_URL = (
     "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"
     f"?db=nuccore&id={QUERY_ACC}&rettype=fasta&retmode=text"
+    f"&seq_start={QUERY_START}&seq_stop={QUERY_STOP}"
 )
 BLAST_CGI = "https://blast.ncbi.nlm.nih.gov/Blast.cgi"
 
 USER_AGENT = "genbank-blast-status/2.0 (github actions monitor)"
 HTTP_TIMEOUT = 30          # seconds for lightweight GETs
 SUBMIT_TIMEOUT = 60        # seconds per URL-API Put
-BLAST_TIMEOUT = 300        # seconds hard cap on the end-to-end blastn
-SLOW_THRESHOLD = 180       # retrieval latency above this (s) => SLOW
+BLAST_TIMEOUT = 240        # seconds hard cap on the end-to-end blastn
+SLOW_THRESHOLD = 120       # retrieval latency above this (s) => SLOW
 BURST_N = 3                # submissions sampled per check
 BURST_SPACING = 10         # seconds between submissions (NCBI-polite)
 HISTORY_LIMIT = 336        # ~7 days at one check / 30 min
@@ -156,8 +161,11 @@ def run_blast(seq):
     """Run one end-to-end blastn -remote. Return retrieval-health dict."""
     tmp = Path(tempfile.gettempdir()) / "blast_query.fasta"
     tmp.write_text(f">query\n{seq}\n")
+    # Same scope as the submit probe (DB + entrez filter) so the two signals
+    # test the same search, and the filtered subset keeps retrieval fast.
     cmd = [
         "blastn", "-remote", "-db", DB, "-query", str(tmp),
+        "-entrez_query", ENTREZ_QUERY,
         "-task", "megablast", "-evalue", "1e-5",
         "-max_target_seqs", "5", "-outfmt", "6",
     ]
@@ -166,22 +174,22 @@ def run_blast(seq):
         proc = subprocess.run(cmd, capture_output=True, text=True,
                               timeout=BLAST_TIMEOUT)
     except subprocess.TimeoutExpired:
-        return {"available": True, "ok": False,
+        return {"available": True, "ok": False, "timed_out": True,
                 "latency_s": round(time.monotonic() - start, 1),
                 "hit_count": 0, "detail": f"timeout after {BLAST_TIMEOUT}s"}
     except FileNotFoundError:
-        return {"available": False, "ok": False, "latency_s": 0,
-                "hit_count": 0, "detail": "blastn not installed"}
+        return {"available": False, "ok": False, "timed_out": False,
+                "latency_s": 0, "hit_count": 0, "detail": "blastn not installed"}
 
     latency = round(time.monotonic() - start, 1)
     if proc.returncode != 0:
         detail = (proc.stderr or "nonzero exit").strip().splitlines()
-        return {"available": True, "ok": False, "latency_s": latency,
-                "hit_count": 0,
+        return {"available": True, "ok": False, "timed_out": False,
+                "latency_s": latency, "hit_count": 0,
                 "detail": (detail[-1] if detail else "nonzero exit")[:300]}
     hits = [ln for ln in proc.stdout.splitlines() if ln.strip()]
-    return {"available": True, "ok": True, "latency_s": latency,
-            "hit_count": len(hits), "detail": "ok"}
+    return {"available": True, "ok": True, "timed_out": False,
+            "latency_s": latency, "hit_count": len(hits), "detail": "ok"}
 
 
 def classify(submit, blast, eutils_ok, neutral_ok):
@@ -213,6 +221,14 @@ def classify(submit, blast, eutils_ok, neutral_ok):
                 f"BLAST job submission is working ({ok}/{total} queued). "
                 "End-to-end retrieval not checked in this run.")
     if not blast["ok"]:
+        # A timeout means the job was accepted but did not finish inside our
+        # budget: that is slowness, not a service failure. Only a genuine
+        # error (nonzero exit) with healthy submits is DEGRADED.
+        if blast.get("timed_out"):
+            return ("SLOW",
+                    f"Submissions queue fine ({ok}/{total}); an end-to-end "
+                    f"search was accepted but did not finish within "
+                    f"{BLAST_TIMEOUT}s. NCBI is likely just slow; {scope}.")
         return ("DEGRADED",
                 f"Jobs submit fine but results did not come back "
                 f"({blast['detail']}); {scope}.")
@@ -235,10 +251,15 @@ def probe():
     submit = submit_burst(seq) if seq else {
         "total": 0, "ok": 0, "failed": 0, "sample_error": "no query sequence"}
 
-    blast = run_blast(seq) if seq else {
-        "available": False, "ok": False, "latency_s": 0, "hit_count": 0,
-        "detail": "no query sequence"}
-    if blast["available"] and not blast["ok"] and "timeout" not in blast["detail"]:
+    if seq:
+        time.sleep(BURST_SPACING)  # be polite: space the burst from this Put
+        blast = run_blast(seq)
+    else:
+        blast = {"available": False, "ok": False, "timed_out": False,
+                 "latency_s": 0, "hit_count": 0, "detail": "no query sequence"}
+    # Retry once on a genuine error, but never on a timeout (would just burn
+    # another BLAST_TIMEOUT and risk the workflow's own time budget).
+    if blast["available"] and not blast["ok"] and not blast.get("timed_out"):
         time.sleep(15)  # one retrieval retry (submit health already sampled)
         blast = run_blast(seq)
 

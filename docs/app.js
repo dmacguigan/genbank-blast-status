@@ -68,12 +68,38 @@ function renderStats(history) {
   }
 }
 
+// Fixed 3-day window split into 30-min slots, so the x-axis always spans the
+// same time regardless of how many checks ran. Each slot is one bar; slots with
+// no check render as a "no data" gap, and a slot with several checks shows the
+// worst status so real problems stay visible.
+const WINDOW_MS = 3 * 24 * 3600 * 1000; // 3 days
+const SLOT_MS = 30 * 60 * 1000;         // 30 min cadence
+const SEVERITY = { OUTAGE: 4, DEGRADED: 3, SLOW: 2, OPERATIONAL: 1, INCONCLUSIVE: 0 };
+
 function renderTimeline(history) {
   const el = document.getElementById("timeline");
   el.innerHTML = "";
-  const recent = history.slice(-96); // last ~48h at 30 min cadence
-  for (const h of recent) {
+  const end = Date.now();
+  const start = end - WINDOW_MS;
+  const slotCount = Math.round(WINDOW_MS / SLOT_MS);
+  const slots = new Array(slotCount).fill(null);
+
+  for (const h of history) {
+    const t = new Date(h.t).getTime();
+    if (isNaN(t) || t < start || t >= end) continue;
+    const i = Math.floor((t - start) / SLOT_MS);
+    const cur = slots[i];
+    if (!cur || (SEVERITY[h.s] ?? -1) >= (SEVERITY[cur.s] ?? -1)) slots[i] = h;
+  }
+
+  for (const h of slots) {
     const bar = document.createElement("div");
+    if (!h) {
+      bar.className = "bar nodata";
+      bar.title = "no check";
+      el.appendChild(bar);
+      continue;
+    }
     const meta = STATES[h.s] || STATES.INCONCLUSIVE;
     bar.className = `bar ${meta.cls}`;
     let tip = `${new Date(h.t).toLocaleString()}\n${meta.label}`;
@@ -81,10 +107,6 @@ function renderTimeline(history) {
     if (h.ok) tip += `\nretrieval ${fmtLatency(h.l)}`;
     bar.title = tip;
     el.appendChild(bar);
-  }
-  if (recent.length) {
-    document.getElementById("axis-start").textContent =
-      relTime(recent[0].t).replace(" ago", " ago");
   }
 }
 
