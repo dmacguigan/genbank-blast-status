@@ -26,15 +26,39 @@ jobs:
         run: python3 scripts/check_blast.py
 
       - name: Commit status
+        env:
+          BRANCH: ${{ github.ref_name }}
         run: |
           git config user.name  "blast-status-bot"
           git config user.email "actions@github.com"
-          git add docs/status.json docs/history.json
-          if git diff --cached --quiet; then
+          if git diff --quiet -- docs/status.json docs/history.json; then
             echo "No changes to commit."
             exit 0
           fi
-          git commit -m "status: $(python3 -c 'import json;print(json.load(open("docs/status.json"))["status"])') [skip ci]" \
-            -m "Co-Authored-By: Claude <noreply@anthropic.com>"
-          git pull --rebase --autostash origin "${GITHUB_REF_NAME}" || true
-          git push
+          # Preserve this run's outputs; we re-apply them onto the freshest
+          # remote each attempt so a concurrent push can never cause a JSON
+          # merge conflict (the old rebase left a detached HEAD and failed).
+          cp docs/status.json /tmp/status.json
+          cp docs/history.json /tmp/history.json
+          STATUS=$(python3 -c 'import json;print(json.load(open("/tmp/status.json"))["status"])')
+          for attempt in 1 2 3 4 5; do
+            git fetch --quiet origin "${BRANCH}"
+            git reset --hard "origin/${BRANCH}"
+            cp /tmp/status.json docs/status.json
+            python3 scripts/merge_history.py docs/history.json /tmp/history.json docs/history.json
+            git add docs/status.json docs/history.json
+            if git diff --cached --quiet; then
+              echo "Remote already has this run's data; nothing to push."
+              exit 0
+            fi
+            git commit -m "status: ${STATUS} [skip ci]" \
+              -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+            if git push origin "HEAD:${BRANCH}"; then
+              echo "Pushed on attempt ${attempt}."
+              exit 0
+            fi
+            echo "Push raced with another commit; retrying (${attempt}/5)."
+            sleep $(( (RANDOM % 4) + 2 ))
+          done
+          echo "Could not push status after retries."
+          exit 1
