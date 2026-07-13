@@ -68,11 +68,11 @@ function renderStats(history) {
   }
 }
 
-// Fixed 3-day window split into 30-min slots, so the x-axis always spans the
+// Fixed 2-day window split into 30-min slots, so the x-axis always spans the
 // same time regardless of how many checks ran. Each slot is one bar; slots with
 // no check render as a "no data" gap, and a slot with several checks shows the
 // worst status so real problems stay visible.
-const WINDOW_MS = 3 * 24 * 3600 * 1000; // 3 days
+const WINDOW_MS = 2 * 24 * 3600 * 1000; // 2 days
 const SLOT_MS = 30 * 60 * 1000;         // 30 min cadence
 const SEVERITY = { OUTAGE: 4, DEGRADED: 3, SLOW: 2, OPERATIONAL: 1, INCONCLUSIVE: 0 };
 
