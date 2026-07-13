@@ -76,6 +76,32 @@ const WINDOW_MS = 3 * 24 * 3600 * 1000; // 3 days
 const SLOT_MS = 30 * 60 * 1000;         // 30 min cadence
 const SEVERITY = { OUTAGE: 4, DEGRADED: 3, SLOW: 2, OPERATIONAL: 1, INCONCLUSIVE: 0 };
 
+let tooltipEl = null;
+function tooltip() {
+  if (!tooltipEl) {
+    tooltipEl = document.createElement("div");
+    tooltipEl.className = "tl-tooltip";
+    tooltipEl.hidden = true;
+    document.body.appendChild(tooltipEl);
+  }
+  return tooltipEl;
+}
+function showTooltip(e) {
+  const bar = e.target.closest(".bar");
+  if (!bar || !bar.dataset.tip) return;
+  const t = tooltip();
+  t.textContent = bar.dataset.tip;
+  t.hidden = false;
+  const pad = 12;
+  const r = t.getBoundingClientRect();
+  let x = e.clientX + pad, y = e.clientY + pad;
+  if (x + r.width > window.innerWidth) x = e.clientX - r.width - pad;
+  if (y + r.height > window.innerHeight) y = e.clientY - r.height - pad;
+  t.style.left = `${Math.max(4, x)}px`;
+  t.style.top = `${Math.max(4, y)}px`;
+}
+function hideTooltip() { if (tooltipEl) tooltipEl.hidden = true; }
+
 function renderTimeline(history) {
   const el = document.getElementById("timeline");
   el.innerHTML = "";
@@ -92,21 +118,28 @@ function renderTimeline(history) {
     if (!cur || (SEVERITY[h.s] ?? -1) >= (SEVERITY[cur.s] ?? -1)) slots[i] = h;
   }
 
-  for (const h of slots) {
+  slots.forEach((h, i) => {
     const bar = document.createElement("div");
     if (!h) {
       bar.className = "bar nodata";
-      bar.title = "no check";
+      const slotTime = new Date(start + i * SLOT_MS);
+      bar.dataset.tip = `${slotTime.toLocaleString()}\nNo check in this window`;
       el.appendChild(bar);
-      continue;
+      return;
     }
     const meta = STATES[h.s] || STATES.INCONCLUSIVE;
     bar.className = `bar ${meta.cls}`;
     let tip = `${new Date(h.t).toLocaleString()}\n${meta.label}`;
     if (h.st) tip += `\nsubmit ${h.st - (h.sf || 0)}/${h.st} queued`;
     if (h.ok) tip += `\nretrieval ${fmtLatency(h.l)}`;
-    bar.title = tip;
+    bar.dataset.tip = tip;
     el.appendChild(bar);
+  });
+
+  if (!el.dataset.wired) {
+    el.addEventListener("mousemove", showTooltip);
+    el.addEventListener("mouseleave", hideTooltip);
+    el.dataset.wired = "1";
   }
 }
 

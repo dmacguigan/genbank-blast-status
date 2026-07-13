@@ -62,18 +62,27 @@ code { background: rgba(127,127,127,.15); padding: .1em .35em; border-radius: 4p
 
 .timeline-wrap h2, .legend h2 { font-size: 1rem; margin: 1.5rem 0 .6rem; }
 .timeline {
-  display: flex; gap: 2px; align-items: flex-end;
+  display: flex; gap: 1px; align-items: flex-end;
   background: var(--card); border: 1px solid var(--border);
   border-radius: 10px; padding: .8rem; box-shadow: var(--shadow);
-  min-height: 60px; overflow-x: auto;
+  min-height: 60px; overflow: hidden;
 }
-.bar { flex: 1 1 3px; min-width: 3px; height: 40px; border-radius: 2px; background: var(--grey); opacity: .9; }
+.bar { flex: 1 1 0; min-width: 0; height: 40px; border-radius: 1px; background: var(--grey); opacity: .9; cursor: pointer; }
+.bar:hover { opacity: 1; filter: brightness(1.2); }
 .bar.operational { background: var(--green); }
 .bar.slow { background: var(--yellow); }
 .bar.degraded { background: var(--orange); }
 .bar.outage { background: var(--red); }
 .bar.inconclusive { background: var(--grey); opacity: .45; }
-.bar.nodata { background: transparent; border: 1px dashed var(--border); opacity: .4; height: 12px; align-self: center; }
+.bar.nodata { background: var(--border); opacity: .3; height: 10px; align-self: center; }
+
+.tl-tooltip {
+  position: fixed; z-index: 50; pointer-events: none;
+  background: var(--card); color: var(--text);
+  border: 1px solid var(--border); border-radius: 6px;
+  padding: .4rem .55rem; font-size: .75rem; line-height: 1.35;
+  white-space: pre-line; box-shadow: var(--shadow); max-width: 240px;
+}
 .axis { display: flex; justify-content: space-between; color: var(--muted); font-size: .75rem; margin-top: .3rem; }
 
 .legend { display: flex; flex-wrap: wrap; gap: .75rem 1.25rem; }
