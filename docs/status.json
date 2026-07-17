@@ -1,15 +1,15 @@
 {
-  "status": "OPERATIONAL",
-  "checked_utc": "2026-07-17T04:45:17Z",
+  "status": "SLOW",
+  "checked_utc": "2026-07-17T07:25:04Z",
   "submit_total": 3,
   "submit_ok": 3,
   "submit_failed": 0,
   "submit_sample_error": "",
   "blast_ok": true,
-  "blast_latency_s": 96.9,
+  "blast_latency_s": 239.4,
   "hit_count": 5,
   "eutils_ok": true,
   "neutral_ok": true,
   "query_source": "efetch",
-  "message": "Submissions queue (3/3) and results return normally in 97s."
+  "message": "BLAST is working but slow (239s to return results)."
 }
