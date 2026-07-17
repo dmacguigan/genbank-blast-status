@@ -1,15 +1,15 @@
 {
   "status": "OPERATIONAL",
-  "checked_utc": "2026-07-17T16:20:02Z",
+  "checked_utc": "2026-07-17T17:41:17Z",
   "submit_total": 3,
   "submit_ok": 3,
   "submit_failed": 0,
   "submit_sample_error": "",
   "blast_ok": true,
-  "blast_latency_s": 68.6,
+  "blast_latency_s": 65.7,
   "hit_count": 5,
   "eutils_ok": true,
   "neutral_ok": true,
   "query_source": "efetch",
-  "message": "Submissions queue (3/3) and results return normally in 69s."
+  "message": "Submissions queue (3/3) and results return normally in 66s."
 }
