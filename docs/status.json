@@ -1,15 +1,15 @@
 {
   "status": "SLOW",
-  "checked_utc": "2026-07-18T14:03:30Z",
+  "checked_utc": "2026-07-18T15:34:55Z",
   "submit_total": 3,
   "submit_ok": 3,
   "submit_failed": 0,
   "submit_sample_error": "",
-  "blast_ok": true,
-  "blast_latency_s": 137.0,
-  "hit_count": 5,
+  "blast_ok": false,
+  "blast_latency_s": 240.1,
+  "hit_count": 0,
   "eutils_ok": true,
   "neutral_ok": true,
   "query_source": "efetch",
-  "message": "BLAST is working but slow (137s to return results)."
+  "message": "Submissions queue fine (3/3); an end-to-end search was accepted but did not finish within 240s. NCBI is likely just slow; the rest of NCBI is reachable, so this looks BLAST-specific."
 }
