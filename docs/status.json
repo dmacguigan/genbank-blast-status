@@ -1,15 +1,15 @@
 {
-  "status": "SLOW",
-  "checked_utc": "2026-07-19T15:34:14Z",
+  "status": "DEGRADED",
+  "checked_utc": "2026-07-19T17:06:37Z",
   "submit_total": 3,
-  "submit_ok": 3,
-  "submit_failed": 0,
-  "submit_sample_error": "",
-  "blast_ok": true,
-  "blast_latency_s": 130.1,
-  "hit_count": 5,
+  "submit_ok": 2,
+  "submit_failed": 1,
+  "submit_sample_error": "http error: Remote end closed connection without response",
+  "blast_ok": false,
+  "blast_latency_s": 240.0,
+  "hit_count": 0,
   "eutils_ok": true,
   "neutral_ok": true,
   "query_source": "efetch",
-  "message": "BLAST is working but slow (130s to return results)."
+  "message": "Intermittent BLAST queue failures: 1 of 3 test submissions were rejected. Some users will hit errors. (e.g. http error: Remote end closed connection without response)"
 }
